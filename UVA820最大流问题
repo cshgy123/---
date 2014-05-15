@@ -1,0 +1,99 @@
+#include<iostream>
+#include<cstring>
+#include<cstdio>
+#include<queue>
+#include<climits>
+#define MAXN 105
+
+using namespace std;
+
+///////////////////////////////////////////
+int node[MAXN][MAXN];
+bool visited[MAXN];
+int pre[MAXN];
+///////////////////////////////////////////
+int numberofnode,START,END,numberofsides;
+int j;
+int count1 = 1;
+
+/////////////////////////////////////////
+
+void input()
+{
+    int u,v,capacity;
+    for(int i =0;i < numberofsides;i++)
+    {
+        cin>>u>>v>>capacity;
+        node[u][v] = node[v][u] += capacity;
+    }
+}
+
+///////////////////////////////////////////
+bool BFS()
+{
+    memset(visited,false,sizeof(visited));
+    memset(pre,-1,sizeof(pre));
+    queue <int> myqueue;
+    myqueue.push(START);
+    visited[START] = true;
+    while(!myqueue.empty())
+    {
+        int e = myqueue.front();
+        if(e == END)
+        return true;
+        myqueue.pop();
+        for(int i = 1;i <= numberofnode; i++)
+        if(node[e][i] && !visited[i])//node[e][i]Z这是判断这条边还有没有可用流量
+        {
+            visited[i] = true;
+            pre[i] = e;
+            myqueue.push(i);
+        }
+    }
+    return false;
+}
+///////////////////////////////////////////
+
+void compute_Max_Flow()
+{
+    int u,tempflow,maxflow = 0;
+    while(BFS())//当BFS返回true时代表已经找到一条合适的路通往终点
+    {
+        tempflow = INT_MAX;
+        u = END;
+        while(pre[u] != -1)//pre[u]代表从终点开始向前找，这一步就是找出BFS找出的那条路上，容量最小的那一段。
+        {
+            tempflow = min(tempflow,node[pre[u]][u]);
+            u = pre[u];//这一条就是改变循环条件的句子，使u不断变化
+        }
+        u = END;
+        while(pre[u] != -1)//把每一条边的总容量减去用过的容量
+        {
+            node[pre[u]][u] -= tempflow;//这上下两个式子一个是正向边减去用过的容量.当这条边减为零时，则BFS无法再用这条边
+            node[u][pre[u]] += tempflow;//一条是反向边加上用过的容量，
+            u = pre[u];
+        }
+        maxflow += tempflow;//把前面哪一条路容量最小的那一段的流量加入maxflow
+    }
+    cout << "Network " << count1++ << endl;
+	cout << "The bandwidth is " << maxflow << "." << endl << endl;
+}
+
+
+///////////////////////////////////////////
+int main()
+{
+	while(scanf("%d%d%d%d",&numberofnode,&START,&END,&numberofsides)!=EOF && numberofnode!=0)
+	{
+        for(int i = 0;i < MAXN;i++)
+        for(int j = 0;j <MAXN;j++)
+        {
+            node[i][j] = 0;
+        }
+		input();
+		compute_Max_Flow();
+	}
+	return 0;
+}
+
+
